@@ -116,7 +116,8 @@ export function derive(s: Store) {
   const qcHold: Record<string, number> = {}
   if (qcConflict?.status === 'resolved' && qcConflict.choice === 'b') qcHold[PRIMARY] = 220
 
-  const supplier = s.supplierDateOverride ?? supplierDate
+  const override = s.supplierDateOverride
+  const supplier = override && msgs.some((m) => m.id === override.messageId) ? override : supplierDate
   const dateConflict = s.conflicts['date-po9921']!
   const arrival: Record<string, string> = {}
   if (dateConflict.status === 'resolved' && dateConflict.choice === 'b') arrival['PO-9921'] = supplier.date
@@ -146,9 +147,11 @@ export function derive(s: Store) {
     a: { label: 'ERP · on hand', value: num(primary.onHand), factKey: 'MCB-220.onHand', source: 'ERP', at: ERP_SYNC, by: 'ERP sync' },
     b: { label: 'Excel · usable', value: num(primaryMat.excelUsable), factKey: 'MCB-220.excelUsable', source: 'Excel', at: EXCEL_EDIT, by: 'Wei Chen' },
     explanation:
-      defParts.length > 0
-        ? `Not a real disagreement: ERP shows everything on the shelf. Excel nets out ${defParts.join(' and ')}: ${num(primary.onHand)} − ${num(s.definition.excludeQcHold ? primary.qcHold : 0)} hold − ${num(s.definition.excludeReserved ? primary.reserved : 0)} reserved = ${num(primary.usableOnHand)} usable.`
-        : `Under the current definition nothing is netted out, so usable = on hand = ${num(primary.usableOnHand)}, but Excel still shows ${num(primaryMat.excelUsable)}.`,
+      defParts.length === 0
+        ? `Under the current definition nothing is netted out, so usable = on hand = ${num(primary.usableOnHand)}, but Excel still shows ${num(primaryMat.excelUsable)}.`
+        : primaryMat.excelUsable === primary.usableOnHand
+          ? `Not a real disagreement: ERP shows everything on the shelf; the planner sheet nets out ${defParts.join(' and ')}: ${num(primary.onHand)} − ${num(s.definition.excludeQcHold ? primary.qcHold : 0)} hold − ${num(s.definition.excludeReserved ? primary.reserved : 0)} reserved = ${num(primary.usableOnHand)} usable.`
+          : `ERP shows everything on the shelf. Under the agreed definition: ${num(primary.onHand)} − ${num(s.definition.excludeQcHold ? primary.qcHold : 0)} hold − ${num(s.definition.excludeReserved ? primary.reserved : 0)} reserved = ${num(primary.usableOnHand)} usable. The planner sheet (${num(primaryMat.excelUsable)}) is now out of date.`,
     confirmLabel: `Confirm usable = ${num(primary.usableOnHand)}`,
     confirmValue: primary.usableOnHand,
     resolvedBy: uc.by,
@@ -215,7 +218,7 @@ export function derive(s: Store) {
     if (isP) {
       if (ucView.status === 'resolved') usableConfirmed = { by: uc.by!, at: uc.at! }
     } else if (m.excelUsable === r.usableOnHand) {
-      usableConfirmed = { by: 'Matches planner sheet', at: EXCEL_EDIT }
+      usableConfirmed = { by: 'Wei Chen (planner sheet)', at: EXCEL_EDIT }
     }
     const formula = `on hand ${num(r.onHand)}${s.definition.excludeQcHold ? ` − QC hold ${num(r.qcHold)}` : ''}${s.definition.excludeReserved ? ` − reserved ${num(r.reserved)}` : ''}${r.inboundInUsable ? ` + inbound ≤${s.definition.inboundDays}d ${num(r.inboundInUsable)}` : ''} = ${num(r.usable)}`
     add({
@@ -276,15 +279,32 @@ export function derive(s: Store) {
   // ---- option plan ----
   const standalone = Object.fromEntries(options.map((o) => [o.id, optionStandalone(o, primary.excess, primaryMat.unitCost)]))
   const plan = planOptions(s.selected, options, primary.excess, primaryMat.unitCost)
+  for (const o of options) {
+    const st = standalone[o.id]
+    const rate = o.id === 'hold' ? `${o.costRate * 100}%/mo × ${holdMonths} mo` : `${o.costRate * 100}%`
+    add({
+      key: `optcost.${o.id}`,
+      label: `${o.title}: cost on its own`,
+      display: usd(st.cost),
+      source: derived(`${num(st.applied)} units × $${primaryMat.unitCost} × ${rate} = ${usd(st.cost)}`, [`opt.${o.id}`, 'MCB-220.excess', 'MCB-220.unitCost'], now, 'Analysis'),
+    })
+  }
 
   return { now, ctx, rows, primary, primaryMat, conflicts, openConflicts, facts, msgs, standalone, plan }
 }
 
 export type Derived = ReturnType<typeof derive>
 
+// One derivation per state change, shared by every component.
+let cache: { s: Store; d: Derived } | null = null
+function derivedFor(s: Store): Derived {
+  if (cache?.s !== s) cache = { s, d: derive(s) }
+  return cache.d
+}
+
 export function useDerived(): Derived {
   const s = useStore()
-  return useMemo(() => derive(s), [s])
+  return useMemo(() => derivedFor(s), [s])
 }
 
 // ---- decision package pinning ----
@@ -325,6 +345,7 @@ export function snapshot(d: Derived): DecisionSnapshot {
     usable: d.primary.usable,
     demand: d.primary.demand,
     lines: d.plan.lines,
+    standalone: options.map((o) => d.standalone[o.id]),
   }
 }
 

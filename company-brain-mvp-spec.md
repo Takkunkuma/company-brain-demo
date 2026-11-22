@@ -248,7 +248,7 @@ These close gaps in sections 5–7. Where they conflict with earlier text, these
 
 1. **Demo clock.** The demo's "now" is **Thu Nov 19, 2026, 9:00 AM**; each user action advances the clock a few minutes. The PO-9921 cancellation window closes **Nov 28** (9 days out).
 2. **Option quantities are capped by the excess that remains.** Selected options are applied in the order the user checks them; each takes `min(capacity, remaining excess)`. Costs are computed on the applied quantity, so the demand slider changes every option's cost. Residual excess never goes below 0.
-3. **Shortage state.** If supply < demand (e.g. demand slider at +60%), excess is 0, a shortage is shown, and options that reduce supply are flagged.
+3. **Shortage state.** If supply < demand (e.g. after definition or input changes), excess is 0, a shortage is shown, and options that reduce supply are flagged.
 4. **"Hold remainder"** does not remove units; it prices the residual at 2%/month for **3 months** (configurable in `scenario.ts`).
 5. **Inbound counted once.** Supply for excess = usable on-hand + all open inbound. The F8 "include inbound within N days" toggle only changes the *displayed* usable number, never double-counts inbound in excess.
 6. **Confirmations are tied to the definition.** Confirming "usable = 900" stores the value. If a definition change (F8) or a newly confirmed input moves usable away from the confirmed value, the conflict re-opens with an explanation.

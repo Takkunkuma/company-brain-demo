@@ -45,6 +45,7 @@ export interface DecisionSnapshot {
   usable: number
   demand: number
   lines: { id: OptionId; applied: number; cost: number }[]
+  standalone: { id: OptionId; applied: number; cost: number }[]
 }
 
 export type DecisionStatus = 'none' | 'draft' | 'awaiting' | 'approved' | 'question'
@@ -97,6 +98,7 @@ interface UiState {
   chat: ChatTurn[]
   tour: { active: boolean; step: number }
   flash: Record<string, number> // fact keys that just changed -> timestamp
+  analyzeRequested: boolean
 }
 
 interface Actions {
@@ -128,6 +130,7 @@ interface Actions {
   setTourStep: (n: number) => void
   endTour: () => void
   flashKeys: (keys: string[]) => void
+  requestAnalyze: (v: boolean) => void
   reset: () => void
 }
 
@@ -144,6 +147,7 @@ const initialDemo = (): DemoState => ({
   },
   captured: seedMessages.filter((m) => m.capturedAtStart).map((m) => m.id),
   extraMessages: [],
+  supplierDateOverride: undefined,
   selected: [],
   impactRun: false,
   decision: { status: 'none', chosen: [], pinned: [], thread: [] },
@@ -160,6 +164,7 @@ const initialUi = (): UiState => ({
   chat: [],
   tour: { active: false, step: 0 },
   flash: {},
+  analyzeRequested: false,
 })
 
 let toastId = 1
@@ -324,6 +329,8 @@ export const useStore = create<Store>()(
           set((s) => ({ flash: { ...s.flash, ...Object.fromEntries(keys.map((k) => [k, t])) } }))
         },
 
+        requestAnalyze: (analyzeRequested) => set({ analyzeRequested }),
+
         reset: () => {
           set({ ...initialDemo(), ...initialUi() })
           get().toast({ title: 'Demo reset', body: 'Everything is back to Thursday 9:00 AM.', tone: 'info' })
@@ -336,7 +343,7 @@ export const useStore = create<Store>()(
       // Any schema change: bump STORE_VERSION and old saved state is discarded.
       migrate: () => initialDemo() as unknown as Store,
       partialize: (s) => {
-        const { drawerKey: _d, toasts: _t, assistantOpen: _a, chat: _c, tour: _tour, flash: _f, ...rest } = s
+        const { drawerKey: _d, toasts: _t, assistantOpen: _a, chat: _c, tour: _tour, flash: _f, analyzeRequested: _ar, ...rest } = s
         const demo: Partial<Store> = {}
         for (const [k, v] of Object.entries(rest)) if (typeof v !== 'function') (demo as Record<string, unknown>)[k] = v
         return demo
