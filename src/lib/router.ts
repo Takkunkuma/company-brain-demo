@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from 'react'
 
 // Hash routing: works on any static host and survives refresh/deep links with no rewrites.
-export type Route = 'inventory' | 'activity' | 'impact' | 'decisions' | 'connections' | 'onboarding' | 'not-doing'
-export const routes: Route[] = ['inventory', 'activity', 'impact', 'decisions', 'connections', 'onboarding', 'not-doing']
+export type Route = 'inventory' | 'reconciliation' | 'activity' | 'impact' | 'decisions' | 'connections' | 'onboarding' | 'not-doing'
+export const routes: Route[] = ['inventory', 'reconciliation', 'activity', 'impact', 'decisions', 'connections', 'onboarding', 'not-doing']
 
 function current(): Route {
   const r = window.location.hash.replace(/^#\/?/, '') as Route

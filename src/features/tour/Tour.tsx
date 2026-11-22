@@ -74,6 +74,13 @@ const steps: Step[] = [
     body: 'Toggle the definition and watch the numbers recalculate across the app. Agreeing on definitions up front is why people trust the numbers.',
     onEnter: () => S().setOnboardingStep(1),
   },
+  {
+    route: 'reconciliation',
+    target: 'recon-graph',
+    title: '9 · Three plans, three versions of the truth',
+    body: 'Maya, Luis and Wei each proposed a plan from different versions of the same files. Pick Plan B: the graph lights up the old copy of the planner sheet it was built on. Switch to Table to compare the numbers side by side.',
+    onEnter: () => S().setRecon({ view: 'graph', plan: 'B', doc: null }),
+  },
 ]
 
 export function Tour() {

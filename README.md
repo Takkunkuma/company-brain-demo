@@ -60,6 +60,7 @@ Notes for a team:
 5. **Decisions:** generate the package, *Send to Daniel*, then *Simulate: an input changes*. Switch to Daniel to approve or ask a question.
 6. **Ask** (top right): try the suggested questions. Every number is cited.
 7. **Onboarding → step 2:** toggle the "usable stock" definition and watch numbers change across the app.
+8. **Reconciliation:** three plans for the extra boards, each built from different versions of the same files. Switch between **Table** and **Graph**, pick Plan B to see it traces back to an old copy of the planner sheet, then approve or send back a plan as Daniel.
 
 ## Project structure
 

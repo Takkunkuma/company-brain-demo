@@ -40,7 +40,13 @@ describe('demo flow', () => {
     const stale = staleInputs(s().decision.pinned, d())
     expect(stale.map((x) => x.key)).toContain('PO-9921.supplierDate')
 
+    // reconciliation review: Daniel approves a plan, then reset clears it
+    s().setRecon({ plan: 'B', view: 'graph' })
+    s().decideRecon('asked')
+    expect(s().recon.decision).toMatchObject({ kind: 'asked', plan: 'B' })
+
     s().reset()
+    expect(s().recon).toEqual({ view: 'table', plan: 'A', doc: null, decision: null })
     expect(s().supplierDateOverride).toBeUndefined()
     expect(s().decision.status).toBe('none')
     expect(d().primary.excess).toBe(700)

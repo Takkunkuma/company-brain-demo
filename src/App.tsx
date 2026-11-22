@@ -8,6 +8,7 @@ import { ProvenanceDrawer } from './components/ProvenanceDrawer'
 import { StaleWatcher, Toasts } from './components/Toasts'
 import { Button } from './components/ui'
 import { InventoryPage } from './features/inventory/InventoryPage'
+import { ReconciliationPage } from './features/reconciliation/ReconciliationPage'
 import { ActivityPage } from './features/activity/ActivityPage'
 import { ImpactPage } from './features/impact/ImpactPage'
 import { DecisionsPage } from './features/decision/DecisionsPage'
@@ -54,6 +55,7 @@ export default function App() {
   const route = useRoute()
   const page = {
     inventory: <InventoryPage />,
+    reconciliation: <ReconciliationPage />,
     activity: <ActivityPage />,
     impact: <ImpactPage />,
     decisions: <DecisionsPage />,

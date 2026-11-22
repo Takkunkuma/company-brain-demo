@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Activity, Ban, Boxes, Brain, Compass, FileCheck2, GraduationCap, Lock, Plug, RotateCcw, Sparkles, TrendingDown } from 'lucide-react'
+import { Activity, Ban, GitFork, Boxes, Brain, Compass, FileCheck2, GraduationCap, Lock, Plug, RotateCcw, Sparkles, TrendingDown } from 'lucide-react'
 import { useStore } from '../store/store'
 import { useDerived } from '../store/derive'
 import { navigate, useRoute, type Route } from '../lib/router'
@@ -9,6 +9,7 @@ import { Avatar, Badge, Button, cx } from './ui'
 
 const nav: { id: Route; label: string; icon: typeof Boxes }[] = [
   { id: 'inventory', label: 'Inventory', icon: Boxes },
+  { id: 'reconciliation', label: 'Reconciliation', icon: GitFork },
   { id: 'activity', label: 'Activity', icon: Activity },
   { id: 'impact', label: 'Impact & Options', icon: TrendingDown },
   { id: 'decisions', label: 'Decisions', icon: FileCheck2 },
@@ -25,6 +26,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
   const badge = (id: Route) => {
     if (id === 'inventory' && d.openConflicts.length) return <Badge tone="amber">{d.openConflicts.length}</Badge>
+    if (id === 'reconciliation' && !s.recon.decision) return <Badge tone="indigo">3</Badge>
     if (id === 'activity' && newMsgs) return <Badge tone="indigo">{newMsgs}</Badge>
     if (id === 'impact' && !s.impactRun) return <span className="size-2 rounded-full bg-red-500" aria-label="New order change" />
     if (id === 'decisions' && s.decision.status === 'awaiting') return <Badge tone="violet">1</Badge>

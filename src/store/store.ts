@@ -16,6 +16,7 @@ import {
 import { defaultDefinition, type Definition } from '../lib/calc'
 import { clockToIso } from '../lib/format'
 import type { Route } from '../lib/router'
+import { plans as reconPlans, type DocId, type PlanId } from '../data/reconciliation'
 
 export type ConflictId = 'usable-mcb220' | 'date-po9921' | 'qchold-mcb220'
 
@@ -89,6 +90,14 @@ interface DemoState {
   syncs: Record<string, string>
   onboardingStep: number
   sourcesMapped: Record<string, boolean>
+  recon: ReconState
+}
+
+export interface ReconState {
+  view: 'table' | 'graph'
+  plan: PlanId
+  doc: DocId | null
+  decision: { kind: 'approved' | 'asked'; plan: PlanId; at: string } | null
 }
 
 interface UiState {
@@ -131,6 +140,9 @@ interface Actions {
   endTour: () => void
   flashKeys: (keys: string[]) => void
   requestAnalyze: (v: boolean) => void
+  setRecon: (r: Partial<Omit<ReconState, 'decision'>>) => void
+  decideRecon: (kind: 'approved' | 'asked') => void
+  undoRecon: () => void
   reset: () => void
 }
 
@@ -155,6 +167,7 @@ const initialDemo = (): DemoState => ({
   syncs: Object.fromEntries(connections.map((c) => [c.id, c.lastSync])),
   onboardingStep: 0,
   sourcesMapped: Object.fromEntries(connections.map((c) => [c.id, c.id !== 'pdf'])),
+  recon: { view: 'table', plan: 'A', doc: null, decision: null },
 })
 
 const initialUi = (): UiState => ({
@@ -170,7 +183,7 @@ const initialUi = (): UiState => ({
 let toastId = 1
 let logId = 100
 
-export const STORE_VERSION = 3
+export const STORE_VERSION = 4
 
 export const useStore = create<Store>()(
   persist(
@@ -330,6 +343,28 @@ export const useStore = create<Store>()(
         },
 
         requestAnalyze: (analyzeRequested) => set({ analyzeRequested }),
+
+        setRecon: (r) => set((s) => ({ recon: { ...s.recon, ...r } })),
+
+        decideRecon: (kind) => {
+          const at = tick()
+          const plan = get().recon.plan
+          const p = reconPlans[plan]
+          set((s) => ({ recon: { ...s.recon, doc: null, decision: { kind, plan, at } } }))
+          log(
+            kind === 'approved'
+              ? { title: 'Reconciliation plan approved', field: `Plan ${plan}: ${p.title}`, to: 'Approved, file versions pinned', source: 'Derived', who: 'Daniel Reyes' }
+              : { title: 'Plan sent back', field: `Plan ${plan} to ${p.authorFull}`, to: p.question, source: 'Derived', who: 'Daniel Reyes' },
+            at,
+          )
+          get().toast(
+            kind === 'approved'
+              ? { title: `Plan ${plan} approved`, body: 'Company Brain saved the exact version of every file it used.', tone: 'success' }
+              : { title: `Sent back to ${p.author}`, body: p.question, tone: 'info' },
+          )
+        },
+
+        undoRecon: () => set((s) => ({ recon: { ...s.recon, decision: null } })),
 
         reset: () => {
           set({ ...initialDemo(), ...initialUi() })
