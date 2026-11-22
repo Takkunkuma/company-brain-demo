@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { Activity, Ban, GitFork, Boxes, Brain, Compass, FileCheck2, GraduationCap, Lock, Plug, RotateCcw, Sparkles, TrendingDown } from 'lucide-react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { Activity, Ban, ChevronDown, GitFork, Boxes, Brain, Compass, FileCheck2, GraduationCap, Lock, Plug, RotateCcw, Sparkles, TrendingDown } from 'lucide-react'
 import { useStore } from '../store/store'
 import { useDerived } from '../store/derive'
 import { navigate, useRoute, type Route } from '../lib/router'
@@ -17,6 +17,58 @@ const nav: { id: Route; label: string; icon: typeof Boxes }[] = [
   { id: 'onboarding', label: 'Onboarding', icon: GraduationCap },
   { id: 'not-doing', label: "What we don't do", icon: Ban },
 ]
+
+/** "Guided tour" opens two choices: continue from where you are, or reset everything and start the tour fresh. */
+function TourMenu() {
+  const startTour = useStore((s) => s.startTour)
+  const restartFresh = useStore((s) => s.restartFresh)
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      e.preventDefault()
+      setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    window.addEventListener('keydown', onKey, true)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      window.removeEventListener('keydown', onKey, true)
+    }
+  }, [open])
+  const choose = (fn: () => void) => {
+    setOpen(false)
+    fn()
+  }
+  return (
+    <div ref={ref} className="relative">
+      <Button size="sm" variant="ghost" onClick={() => setOpen((o) => !o)} data-tour="tour-btn" aria-haspopup="menu" aria-expanded={open} aria-label="Guided tour" title="Guided tour">
+        <Compass className="size-3.5" /> <span className="hidden xl:inline">Guided tour</span> <ChevronDown className="size-3" />
+      </Button>
+      {open && (
+        <div role="menu" aria-label="Guided tour" className="fade-up absolute right-0 top-9 z-50 w-72 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
+          <button role="menuitem" onClick={() => choose(restartFresh)} className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-slate-50 focus-visible:bg-slate-50">
+            <RotateCcw className="mt-0.5 size-4 shrink-0 text-accent-700" />
+            <span>
+              <span className="block text-sm font-medium text-slate-900">Start over with the tour</span>
+              <span className="block text-xs text-slate-500">Resets the demo to Thursday 9:00 AM, then walks you through from step 1.</span>
+            </span>
+          </button>
+          <button role="menuitem" onClick={() => choose(startTour)} className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-slate-50 focus-visible:bg-slate-50">
+            <Compass className="mt-0.5 size-4 shrink-0 text-slate-500" />
+            <span>
+              <span className="block text-sm font-medium text-slate-900">Tour without resetting</span>
+              <span className="block text-xs text-slate-500">Keeps everything you've done so far.</span>
+            </span>
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function Layout({ children }: { children: ReactNode }) {
   const route = useRoute()
@@ -89,9 +141,7 @@ export function Layout({ children }: { children: ReactNode }) {
             {longDay(d.now)} · {when(d.now).split(' ').slice(1).join(' ')} · data synced from 5 sources
           </span>
           <div className="ml-auto flex items-center gap-2">
-            <Button size="sm" variant="ghost" onClick={s.startTour} data-tour="tour-btn" aria-label="Guided tour" title="Guided tour">
-              <Compass className="size-3.5" /> <span className="hidden xl:inline">Guided tour</span>
-            </Button>
+            <TourMenu />
             <Button size="sm" variant="ghost" onClick={s.reset} data-tour="reset-btn" aria-label="Reset demo" title="Reset demo">
               <RotateCcw className="size-3.5" /> <span className="hidden xl:inline">Reset demo</span>
             </Button>

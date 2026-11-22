@@ -170,7 +170,10 @@ export function Tour() {
             {tour.step < steps.length - 1 ? (
               <Button size="sm" variant="primary" onClick={() => setStep(tour.step + 1)}>Next</Button>
             ) : (
-              <Button size="sm" variant="primary" onClick={end}>Finish</Button>
+              <>
+                <Button size="sm" variant="ghost" onClick={() => useStore.getState().restartFresh()} title="Reset the demo and start the tour again">Start over</Button>
+                <Button size="sm" variant="primary" onClick={end}>Finish</Button>
+              </>
             )}
           </div>
         </div>

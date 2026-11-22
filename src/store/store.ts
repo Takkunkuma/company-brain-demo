@@ -136,6 +136,7 @@ interface Actions {
   setAssistant: (open: boolean) => void
   pushChat: (t: ChatTurn) => void
   startTour: () => void
+  restartFresh: () => void
   setTourStep: (n: number) => void
   endTour: () => void
   flashKeys: (keys: string[]) => void
@@ -333,7 +334,11 @@ export const useStore = create<Store>()(
         setAssistant: (assistantOpen) => set({ assistantOpen }),
         pushChat: (t) => set((s) => ({ chat: [...s.chat, t] })),
 
-        startTour: () => set({ tour: { active: true, step: 0 }, drawerKey: null }),
+        startTour: () => set({ tour: { active: true, step: 0 }, drawerKey: null, assistantOpen: false }),
+        restartFresh: () => {
+          set({ ...initialDemo(), ...initialUi(), tour: { active: true, step: 0 } })
+          get().toast({ title: 'Starting over', body: 'The demo is back to Thursday 9:00 AM and the tour is starting from step 1.', tone: 'info' })
+        },
         setTourStep: (step) => set({ tour: { active: true, step } }),
         endTour: () => set({ tour: { active: false, step: 0 } }),
 

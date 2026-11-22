@@ -49,6 +49,7 @@ Notes for a team:
 - Progress is saved **in each person's browser** (localStorage). Teammates don't share state, so everyone gets their own copy of the scenario.
 - To show the Maya → Daniel handoff, use the **persona switcher** (top right) in one browser.
 - **Reset demo** (top bar) returns everything to Thursday 9:00 AM.
+- **Guided tour → Start over with the tour** resets the demo and replays the tour from step 1. ("Tour without resetting" keeps your progress.) The last tour step also has a **Start over** button.
 - Best on a laptop. Tablet works; phones get a simplified nav.
 
 ## What to try (acceptance checklist)

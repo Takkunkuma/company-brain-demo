@@ -52,4 +52,15 @@ describe('demo flow', () => {
     expect(d().primary.excess).toBe(700)
     expect(d().openConflicts).toHaveLength(2)
   })
+
+  it('start over with the tour resets everything and begins at step 1', () => {
+    s().resolveConflict('usable-mcb220', 'a', 900)
+    s().setRecon({ plan: 'C' })
+    s().setTourStep(5)
+    s().restartFresh()
+    expect(s().tour).toEqual({ active: true, step: 0 })
+    expect(s().recon.plan).toBe('A')
+    expect(s().conflicts['usable-mcb220']?.status).toBe('open')
+    expect(s().clock).toBe(0)
+  })
 })
