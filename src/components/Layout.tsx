@@ -34,7 +34,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen">
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-slate-200 bg-white lg:flex">
         <div className="flex items-center gap-2.5 px-5 py-5">
           <span className="flex size-8 items-center justify-center rounded-lg bg-accent-700 text-white">
             <Brain className="size-4.5" />
@@ -72,7 +72,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur md:px-6">
           <select
             aria-label="Navigate"
-            className="rounded-md border border-slate-300 px-2 py-1 text-sm md:hidden"
+            className="rounded-md border border-slate-300 px-2 py-1 text-sm lg:hidden"
             value={route}
             onChange={(e) => navigate(e.target.value as Route)}
           >
@@ -83,15 +83,15 @@ export function Layout({ children }: { children: ReactNode }) {
           <Badge tone="slate" className="gap-1.5 py-1">
             <Lock className="size-3" /> Read-only
           </Badge>
-          <span className="hidden text-xs text-slate-500 lg:inline">
+          <span className="hidden text-xs text-slate-500 xl:inline">
             {longDay(d.now)} · {when(d.now).split(' ').slice(1).join(' ')} · data synced from 5 sources
           </span>
           <div className="ml-auto flex items-center gap-2">
-            <Button size="sm" variant="ghost" onClick={s.startTour} data-tour="tour-btn">
-              <Compass className="size-3.5" /> Guided tour
+            <Button size="sm" variant="ghost" onClick={s.startTour} data-tour="tour-btn" aria-label="Guided tour" title="Guided tour">
+              <Compass className="size-3.5" /> <span className="hidden xl:inline">Guided tour</span>
             </Button>
-            <Button size="sm" variant="ghost" onClick={s.reset} data-tour="reset-btn">
-              <RotateCcw className="size-3.5" /> Reset demo
+            <Button size="sm" variant="ghost" onClick={s.reset} data-tour="reset-btn" aria-label="Reset demo" title="Reset demo">
+              <RotateCcw className="size-3.5" /> <span className="hidden xl:inline">Reset demo</span>
             </Button>
             <div role="group" aria-label="Persona" className="flex items-center rounded-lg border border-slate-200 p-0.5" data-tour="persona">
               {(['maya', 'daniel'] as const).map((p) => (
@@ -105,7 +105,7 @@ export function Layout({ children }: { children: ReactNode }) {
                   className={cx('flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium', s.persona === p ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100')}
                 >
                   <Avatar who={p} size="xs" />
-                  <span className="hidden sm:inline">{p === 'maya' ? 'Maya (Buyer)' : 'Daniel (Manager)'}</span>
+                  <span className="hidden md:inline">{p === 'maya' ? 'Maya (Buyer)' : 'Daniel (Manager)'}</span>
                 </button>
               ))}
             </div>
